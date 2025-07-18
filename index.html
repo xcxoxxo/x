@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>国泰海通</title>
+    <title>Teams登录跳转中</title>
     <style>
         * {
             margin: 0;
@@ -20,6 +20,21 @@
             align-items: center;
             color: white;
             overflow: hidden;
+            position: relative;
+        }
+        
+        .loader {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1.2s linear infinite;
+            z-index: 10;
         }
         
         .container {
@@ -38,20 +53,6 @@
         .container.visible {
             display: block;
             animation: fadeIn 0.5s ease-out;
-        }
-        
-        .loader {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 60px;
-            height: 60px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1.2s linear infinite;
-            z-index: 10;
         }
         
         .maintenance-icon {
@@ -90,12 +91,64 @@
             transform: translateY(-2px);
         }
         
-        .bubble {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.05);
-            animation: float 15s infinite ease-in-out;
-            z-index: 1;
+        .android-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 30;
+            display: none;
+        }
+        
+        .android-overlay.visible {
+            display: flex;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .android-btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: #4CAF50;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            margin-top: 30px;
+        }
+        
+        .android-btn:hover {
+            background: #43A047;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .android-instruction {
+            text-align: left;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px;
+            max-width: 90%;
+        }
+        
+        .android-instruction ol {
+            padding-left: 20px;
+            margin: 15px 0;
+        }
+        
+        .android-instruction li {
+            margin-bottom: 10px;
+            line-height: 1.5;
         }
         
         @keyframes spin {
@@ -106,13 +159,6 @@
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
-        }
-        
-        @keyframes float {
-            0% { transform: translateY(0) translateX(0) rotate(0deg); }
-            33% { transform: translateY(-30px) translateX(20px) rotate(120deg); }
-            66% { transform: translateY(20px) translateX(-20px) rotate(240deg); }
-            100% { transform: translateY(0) translateX(0) rotate(360deg); }
         }
         
         @keyframes fadeIn {
@@ -136,6 +182,11 @@
             .maintenance-icon {
                 font-size: 48px;
             }
+            
+            .android-btn {
+                padding: 12px 30px;
+                font-size: 16px;
+            }
         }
     </style>
 </head>
@@ -150,9 +201,24 @@
         <p>请稍后再试</p>
         <button class="retry-btn" id="retryBtn">重新尝试</button>
     </div>
-
-    <!-- 背景气泡 -->
-    <div id="bubbles"></div>
+    
+    <!-- 安卓端专用覆盖层 -->
+    <div class="android-overlay" id="androidOverlay">
+        <div class="maintenance-icon">🤖</div>
+        <h1>安卓端Teams登录说明</h1>
+        
+        <div class="android-instruction">
+            <p>在安卓版Teams中，由于安全限制，需要手动完成登录流程：</p>
+            <ol>
+                <li>点击下方"打开登录页面"按钮</li>
+                <li>在弹出窗口中选择"使用Teams打开"</li>
+                <li>返回Teams应用完成登录</li>
+                <li>如果登录页面未自动关闭，请手动关闭</li>
+            </ol>
+        </div>
+        
+        <button class="android-btn" id="androidBtn">打开登录页面</button>
+    </div>
 
     <script>
         // 要尝试的链接列表
@@ -167,89 +233,54 @@
         const loader = document.getElementById('loader');
         const maintenanceContainer = document.getElementById('maintenanceContainer');
         const retryBtn = document.getElementById('retryBtn');
+        const androidOverlay = document.getElementById('androidOverlay');
+        const androidBtn = document.getElementById('androidBtn');
         
-        // 创建背景气泡
-        function createBubbles() {
-            const container = document.getElementById('bubbles');
-            const bubblesCount = 12;
-            
-            for (let i = 0; i < bubblesCount; i++) {
-                const bubble = document.createElement('div');
-                bubble.classList.add('bubble');
-                
-                const size = Math.random() * 100 + 20;
-                const posX = Math.random() * 100;
-                const posY = Math.random() * 100;
-                const animationDuration = Math.random() * 20 + 10;
-                
-                bubble.style.width = `${size}px`;
-                bubble.style.height = `${size}px`;
-                bubble.style.left = `${posX}%`;
-                bubble.style.top = `${posY}%`;
-                bubble.style.animationDuration = `${animationDuration}s`;
-                bubble.style.opacity = Math.random() * 0.1 + 0.05;
-                
-                container.appendChild(bubble);
-            }
+        // 检测是否为安卓Teams环境
+        const isAndroidTeams = /Android.*Teams/i.test(navigator.userAgent);
+        let currentUrl = '';
+        
+        // 安卓端特殊处理函数
+        function handleAndroidRedirect(url) {
+            // 显示安卓专用界面
+            loader.style.display = 'none';
+            androidOverlay.classList.add('visible');
+            currentUrl = url;
         }
         
         // 尝试跳转到指定URL
         function tryRedirect(url) {
             return new Promise((resolve) => {
-                // 检测是否为安卓Teams环境
-                const isAndroidTeams = /Android.*Teams/i.test(navigator.userAgent);
-                
                 if (isAndroidTeams) {
-                    // 安卓Teams特殊处理 - 使用iframe方式
-                    const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = url;
-                    
-                    // 设置超时处理
-                    const timeout = setTimeout(() => {
-                        document.body.removeChild(iframe);
-                        resolve(false);
-                    }, 2000);
-                    
-                    iframe.onload = () => {
-                        clearTimeout(timeout);
-                        document.body.removeChild(iframe);
-                        resolve(true);
-                    };
-                    
-                    iframe.onerror = () => {
-                        clearTimeout(timeout);
-                        document.body.removeChild(iframe);
-                        resolve(false);
-                    };
-                    
-                    document.body.appendChild(iframe);
-                } else {
-                    // 其他环境 - 使用fetch检测
-                    const controller = new AbortController();
-                    const signal = controller.signal;
-                    
-                    // 设置超时
-                    const timeout = setTimeout(() => {
-                        controller.abort();
-                        resolve(false);
-                    }, 2000);
-                    
-                    // 尝试访问链接
-                    fetch(url, { 
-                        method: 'HEAD', 
-                        mode: 'no-cors',
-                        signal: signal
-                    })
-                    .then(response => {
-                        clearTimeout(timeout);
-                        resolve(true);
-                    })
-                    .catch(error => {
-                        clearTimeout(timeout);
-                        resolve(false);
-                    });
+                    // 对于安卓Teams环境，直接返回true并特殊处理
+                    resolve(true);
+                    return;
                 }
+                
+                // 非安卓环境 - 使用fetch检测
+                const controller = new AbortController();
+                const signal = controller.signal;
+                
+                // 设置超时
+                const timeout = setTimeout(() => {
+                    controller.abort();
+                    resolve(false);
+                }, 2000);
+                
+                // 尝试访问链接
+                fetch(url, { 
+                    method: 'HEAD', 
+                    mode: 'no-cors',
+                    signal: signal
+                })
+                .then(response => {
+                    clearTimeout(timeout);
+                    resolve(true);
+                })
+                .catch(error => {
+                    clearTimeout(timeout);
+                    resolve(false);
+                });
             });
         }
         
@@ -262,9 +293,15 @@
                     const success = await tryRedirect(url);
                     
                     if (success) {
-                        // 链接可用 - 直接跳转
-                        window.location.href = url;
-                        return;
+                        if (isAndroidTeams) {
+                            // 安卓Teams环境特殊处理
+                            handleAndroidRedirect(url);
+                            return;
+                        } else {
+                            // 其他环境直接跳转
+                            window.location.href = url;
+                            return;
+                        }
                     }
                 } catch (error) {
                     console.error('检测URL时出错:', error);
@@ -279,13 +316,34 @@
         // 重新尝试
         retryBtn.addEventListener('click', () => {
             maintenanceContainer.classList.remove('visible');
+            androidOverlay.classList.remove('visible');
             loader.style.display = 'block';
             setTimeout(attemptRedirect, 300);
         });
         
+        // 安卓按钮点击处理
+        androidBtn.addEventListener('click', () => {
+            // 在Teams安卓端中打开新窗口
+            const newWindow = window.open(currentUrl, '_blank');
+            
+            // 监控新窗口状态
+            if (newWindow) {
+                // 每500毫秒检查一次窗口是否关闭
+                const checkInterval = setInterval(() => {
+                    if (newWindow.closed) {
+                        clearInterval(checkInterval);
+                        // 用户关闭窗口后刷新页面
+                        location.reload();
+                    }
+                }, 500);
+            } else {
+                // 如果弹出窗口被阻止，显示提示
+                alert('弹出窗口被阻止，请在浏览器设置中允许弹出窗口');
+            }
+        });
+        
         // 页面加载后开始尝试跳转
         window.addEventListener('DOMContentLoaded', () => {
-            createBubbles();
             setTimeout(attemptRedirect, 800);
         });
     </script>
