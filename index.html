@@ -88,43 +88,12 @@
   ];
   const TIMEOUT = 4000;
 
-  const isTeamsAndroid = /Teams\/.*Android/i.test(navigator.userAgent);
-
-  if (isTeamsAndroid) {
-    showError(urls);
-    return;
-  }
-
-  for (const u of urls) {
-    try {
-      await fetch(u, {
-        method: "HEAD",
-        mode: "no-cors",
-        cache: "no-store",
-        signal: AbortSignal.timeout(TIMEOUT)
-      });
-      location.replace(u);
-      return;
-    } catch (e) {
-      // 继续尝试下一个
-    }
-  }
-
-  showError(urls);
-})();
-
-function showError(urls) {
-  document.getElementById("bar").style.display = "none";
-  document.getElementById("err").style.display = "block";
-
-  // 随机选择一个可供手动访问的地址
-  const randomUrl = urls[Math.floor(Math.random() * urls.length)];
-  document.getElementById("alt-url").innerText = randomUrl;
-}
-
-function retry() {
-  location.reload();
-}
-</script>
-</body>
-</html>
+  // 更严谨检测 Teams 安卓 WebView
+  const ua = navigator.userAgent || '';
+  const isAndroid = /Android/i.test(ua);
+  const isTeams = /Teams/i.test(ua);
+  const isWebView = (() => {
+    const standalone = window.navigator.standalone;
+    const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
+    const isIOSWebView = isIOS() && !isSafari;
+    return (isAndroid && isTeams) || i
