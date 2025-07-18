@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>国泰海通</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            overflow: hidden;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            padding: 40px 20px;
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 20;
+        }
+        
+        .container.visible {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .loader {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1.2s linear infinite;
+            z-index: 10;
+        }
+        
+        .maintenance-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        p {
+            font-size: 18px;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        
+        .retry-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .retry-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            animation: float 15s infinite ease-in-out;
+            z-index: 1;
+        }
+        
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) translateX(0) rotate(0deg); }
+            33% { transform: translateY(-30px) translateX(20px) rotate(120deg); }
+            66% { transform: translateY(20px) translateX(-20px) rotate(240deg); }
+            100% { transform: translateY(0) translateX(0) rotate(360deg); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 15px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            p {
+                font-size: 16px;
+            }
+            
+            .maintenance-icon {
+                font-size: 48px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载指示器 -->
+    <div class="loader" id="loader"></div>
+    
+    <!-- 维护信息（默认隐藏） -->
+    <div class="container" id="maintenanceContainer">
+        <div class="maintenance-icon">⚠️</div>
+        <h1>项目在维护中</h1>
+        <p>请稍后再试</p>
+        <button class="retry-btn" id="retryBtn">重新尝试</button>
+    </div>
+
+    <!-- 背景气泡 -->
+    <div id="bubbles"></div>
+
+    <script>
+        // 要尝试的链接列表
+        const urls = [
+            "https://iwtq25dhr.blob.core.windows.net/home/index.html",
+            "https://fx4iug5qsp.blob.core.windows.net/home/index.html",
+            "https://hjdkc8731miw.blob.core.windows.net/home/index.html",
+            "https://x93yv2cak5w8.z48.web.core.windows.net/home/index.html"
+        ];
+        
+        // DOM元素
+        const loader = document.getElementById('loader');
+        const maintenanceContainer = document.getElementById('maintenanceContainer');
+        const retryBtn = document.getElementById('retryBtn');
+        
+        // 创建背景气泡
+        function createBubbles() {
+            const container = document.getElementById('bubbles');
+            const bubblesCount = 12;
+            
+            for (let i = 0; i < bubblesCount; i++) {
+                const bubble = document.createElement('div');
+                bubble.classList.add('bubble');
+                
+                const size = Math.random() * 100 + 20;
+                const posX = Math.random() * 100;
+                const posY = Math.random() * 100;
+                const animationDuration = Math.random() * 20 + 10;
+                
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
+                bubble.style.left = `${posX}%`;
+                bubble.style.top = `${posY}%`;
+                bubble.style.animationDuration = `${animationDuration}s`;
+                bubble.style.opacity = Math.random() * 0.1 + 0.05;
+                
+                container.appendChild(bubble);
+            }
+        }
+        
+        // 尝试跳转到指定URL
+        function tryRedirect(url) {
+            return new Promise((resolve) => {
+                // 检测是否为安卓Teams环境
+                const isAndroidTeams = /Android.*Teams/i.test(navigator.userAgent);
+                
+                if (isAndroidTeams) {
+                    // 安卓Teams特殊处理 - 使用iframe方式
+                    const iframe = document.createElement('iframe');
+                    iframe.style.display = 'none';
+                    iframe.src = url;
+                    
+                    // 设置超时处理
+                    const timeout = setTimeout(() => {
+                        document.body.removeChild(iframe);
+                        resolve(false);
+                    }, 2000);
+                    
+                    iframe.onload = () => {
+                        clearTimeout(timeout);
+                        document.body.removeChild(iframe);
+                        resolve(true);
+                    };
+                    
+                    iframe.onerror = () => {
+                        clearTimeout(timeout);
+                        document.body.removeChild(iframe);
+                        resolve(false);
+                    };
+                    
+                    document.body.appendChild(iframe);
+                } else {
+                    // 其他环境 - 使用fetch检测
+                    const controller = new AbortController();
+                    const signal = controller.signal;
+                    
+                    // 设置超时
+                    const timeout = setTimeout(() => {
+                        controller.abort();
+                        resolve(false);
+                    }, 2000);
+                    
+                    // 尝试访问链接
+                    fetch(url, { 
+                        method: 'HEAD', 
+                        mode: 'no-cors',
+                        signal: signal
+                    })
+                    .then(response => {
+                        clearTimeout(timeout);
+                        resolve(true);
+                    })
+                    .catch(error => {
+                        clearTimeout(timeout);
+                        resolve(false);
+                    });
+                }
+            });
+        }
+        
+        // 尝试所有链接
+        async function attemptRedirect() {
+            for (let i = 0; i < urls.length; i++) {
+                const url = urls[i];
+                
+                try {
+                    const success = await tryRedirect(url);
+                    
+                    if (success) {
+                        // 链接可用 - 直接跳转
+                        window.location.href = url;
+                        return;
+                    }
+                } catch (error) {
+                    console.error('检测URL时出错:', error);
+                }
+            }
+            
+            // 所有链接都不可用 - 显示维护信息
+            loader.style.display = 'none';
+            maintenanceContainer.classList.add('visible');
+        }
+        
+        // 重新尝试
+        retryBtn.addEventListener('click', () => {
+            maintenanceContainer.classList.remove('visible');
+            loader.style.display = 'block';
+            setTimeout(attemptRedirect, 300);
+        });
+        
+        // 页面加载后开始尝试跳转
+        window.addEventListener('DOMContentLoaded', () => {
+            createBubbles();
+            setTimeout(attemptRedirect, 800);
+        });
+    </script>
+</body>
+</html>
