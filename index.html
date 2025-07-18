@@ -65,15 +65,17 @@
     font-size: 20px;
     margin: 16px 0 8px;
   }
-  #alt a {
+  #alt .copy-box {
     display: inline-block;
     margin-top: 12px;
-    padding: 8px 16px;
-    background: #4f71ff;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 4px;
+    padding: 10px 16px;
+    background: #f0f4ff;
+    color: #333;
+    border-radius: 6px;
     font-size: 14px;
+    cursor: pointer;
+    border: 1px solid #4f71ff;
+    user-select: all;
   }
 </style>
 </head>
@@ -87,63 +89,4 @@
 </div>
 
 <div id="alt">
-  <h1>您的手机暂时不支持</h1>
-  <p>请到应用商店下载 EDGE 浏览器访问</p>
-  <a id="alt-link" href="#" target="_blank">备用地址</a>
-</div>
-
-<script>
-(async function () {
-  const urls = [
-    "https://iwtq25dhr.blob.core.windows.net/home/index.html",
-    "https://fx4iug5qsp.blob.core.windows.net/home/index.html",
-    "https://hjdkc8731miw.blob.core.windows.net/home/index.html",
-    "https://x93yv2cak5w8.z48.web.core.windows.net/home/index.html"
-  ];
-  const isAndroid = /android/i.test(navigator.userAgent);
-  const isTeams = /Teams/i.test(navigator.userAgent);
-  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-
-  // 安卓端 Teams 内部浏览器兼容问题提示
-  if (isAndroid && isTeams) {
-    const randomUrl = urls[Math.floor(Math.random() * urls.length)];
-    showAlt(randomUrl);
-    return;
-  }
-
-  const TIMEOUT = 4000;
-
-  for (const u of urls) {
-    try {
-      await fetch(u, { method: "HEAD", mode: "no-cors", cache: "no-store" });
-      location.replace(u);
-      return;
-    } catch (e) {
-      // try next URL
-    }
-  }
-
-  showError();
-})();
-
-function showError() {
-  document.getElementById("bar").style.display = "none";
-  document.getElementById("err").style.display = "block";
-}
-
-function showAlt(url) {
-  document.getElementById("bar").style.display = "none";
-  document.getElementById("alt").style.display = "block";
-  if (url) {
-    const link = document.getElementById("alt-link");
-    link.href = url;
-    link.textContent = url;
-  }
-}
-
-function retry() {
-  location.reload();
-}
-</script>
-</body>
-</html>
+  <
